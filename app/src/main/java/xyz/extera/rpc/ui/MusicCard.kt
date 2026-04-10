@@ -17,6 +17,7 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import xyz.extera.rpc.data.SettingsStore
+import xyz.extera.rpc.service.ServiceStatusNotificationManager
 
 fun isNotificationListenerEnabled(context: Context): Boolean {
     val enabledPackages = NotificationManagerCompat.getEnabledListenerPackages(context)
@@ -42,11 +43,12 @@ fun MusicCard(
 
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME && pendingPermission) {
+                if (event == Lifecycle.Event.ON_RESUME && pendingPermission) {
                 pendingPermission = false
                 if (isNotificationListenerEnabled(context)) {
                     enabled = true
                     SettingsStore.setMusicEnabled(context, true)
+                    ServiceStatusNotificationManager.showServiceEnabledNotification(context, "Music")
                 }
             }
         }
@@ -90,6 +92,11 @@ fun MusicCard(
                         }
                         enabled = newValue
                         SettingsStore.setMusicEnabled(context, newValue)
+                        if (newValue) {
+                            ServiceStatusNotificationManager.showServiceEnabledNotification(context, "Music")
+                        } else {
+                            ServiceStatusNotificationManager.showServiceDisabledNotification(context, "Music")
+                        }
                         onEnabledChanged(newValue)
                     }
                 )

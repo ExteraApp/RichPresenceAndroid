@@ -45,7 +45,21 @@ class MainActivity : ComponentActivity() {
                         "dashboard" -> DashboardScreen(
                             userId = credentials?.userId ?: "unknown",
                             onLogout = {
-                                CredentialsStore.clear(this@MainActivity)
+                                if (credentials != null) {
+                                    lifecycleScope.launch(Dispatchers.IO) {
+                                        val delResult = MatrixApi.deleteRichPresence(
+                                            homeserverUrl = credentials.homeserverUrl,
+                                            accessToken = credentials.accessToken,
+                                            userId = credentials.userId
+                                        )
+                                        if (delResult.isSuccess) {
+                                            Log.d(TAG, "Rich Presence deleted successfully")
+                                        } else {
+                                            Log.w(TAG, "Failed to delete Rich Presence", delResult.exceptionOrNull())
+                                        }
+                                        CredentialsStore.clear(this@MainActivity)
+                                    }
+                                }
                                 isLoggedIn = false
                             },
                             onMusicSettingsClick = {

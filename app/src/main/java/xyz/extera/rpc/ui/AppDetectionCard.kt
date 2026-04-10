@@ -19,6 +19,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import xyz.extera.rpc.data.SettingsStore
 import xyz.extera.rpc.service.AppDetectionService
+import xyz.extera.rpc.service.ServiceStatusNotificationManager
 
 /** Checks if the Usage Access permission is granted */
 fun isUsageAccessEnabled(context: Context): Boolean {
@@ -50,12 +51,13 @@ fun AppDetectionCard(
 
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME && pendingPermission) {
+                if (event == Lifecycle.Event.ON_RESUME && pendingPermission) {
                 pendingPermission = false
                 if (isUsageAccessEnabled(context)) {
                     enabled = true
                     SettingsStore.setAppDetectionEnabled(context, true)
                     AppDetectionService.start(context)
+                    ServiceStatusNotificationManager.showServiceEnabledNotification(context, "App Detection")
                 }
             }
         }
@@ -106,8 +108,10 @@ fun AppDetectionCard(
                         SettingsStore.setAppDetectionEnabled(context, newValue)
                         if (newValue) {
                             AppDetectionService.start(context)
+                            ServiceStatusNotificationManager.showServiceEnabledNotification(context, "App Detection")
                         } else {
                             AppDetectionService.stop(context)
+                            ServiceStatusNotificationManager.showServiceDisabledNotification(context, "App Detection")
                         }
                     }
                 )
